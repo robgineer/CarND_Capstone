@@ -99,7 +99,7 @@ class WaypointUpdater(object):
         # copy of lane waypoints
         self.base_waypoints = waypoints
         if self.waypoints_2d == None:
-            self.waypoints_2d = [[waypoints.pose.pose.position.x, waypoints.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoints.pose.pose.position.y] for waypoint in waypoints.waypoints]
             self.waypoints_KDTree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
