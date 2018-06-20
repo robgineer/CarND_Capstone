@@ -57,7 +57,7 @@ class WaypointUpdater(object):
         execution_freq = rospy.Rate(50) # value taken over from tutorial
 
         # check if roscore is active
-        while not in rospy.is_shutdown():
+        while not rospy.is_shutdown():
             # asynchronous thread execution: check if variables have been initialized
             # (avoid potential access to undefined variables)
             if self.ego_pose != None and self.base_waypoints != None:
