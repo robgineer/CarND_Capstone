@@ -27,83 +27,80 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 
 class WaypointUpdater(object):
     def __init__(self):
-	# initialise this node
+        # initialise this node
         rospy.init_node('waypoint_updater')
 
-	# define the subscribers and the corresponding callback function
-	# /current_pose represents the EGO position
-	# /base_waypoints represent 	
+	    # define the subscribers and the corresponding callback function
+        # /current_pose represents the EGO position
+        # /base_waypoints represent
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
-
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-	
-        # TODO: Add other member variables you need below
-	self.ego_pose = None
-	self.base_waypoints = None
-	self.waypoints_2d = None
-	self.waypoint_KDTree = None
 
-	# dont need spin(). Replaced by loop().
+        self.ego_pose = None
+        self.base_waypoints = None
+        self.waypoints_2d = None
+        self.waypoint_KDTree = None
+
+	    # dont need spin(). Replaced by loop().
         #rospy.spin()
 	
-	# infinite loop that suspends itself every 20ms
-	self.loop()
+        # infinite loop that suspends itself every 20ms
+        self.loop()
 	
     def loop(self):
-	# publish closest waypoint every 50ms and pause execution
+        # publish closest waypoint every 20ms and pause execution
 
-	# define the cycle time of this module 
-	execution_freq = rospy.Rate(50) # value taken over from tutorial
+        # define the cycle time of this module
+        execution_freq = rospy.Rate(50) # value taken over from tutorial
 
-	# check if roscore is active
-	while not in rospy.is_shutdown():
-		# asynchronous thread execution: check if variables have been initialized 
-		# (avoid potential access to undefined variables)
-		if self.ego_pose != None and self.base_waypoints != None:
-			# publish closest waypoint
-			next_wpt_idx = self.get_next_waypoint_idx()
-			self.publish_nxt_waypoints(next_wpt_idx)
-		# got to sleep for 20ms 
-		rate.sleep()
+        # check if roscore is active
+        while not in rospy.is_shutdown():
+            # asynchronous thread execution: check if variables have been initialized
+            # (avoid potential access to undefined variables)
+            if self.ego_pose != None and self.base_waypoints != None:
+                # publish closest waypoint
+                next_wpt_idx = self.get_next_waypoint_idx()
+                self.publish_nxt_waypoints(next_wpt_idx)
+        # got to sleep for 20ms
+        execution_freq.sleep()
 
     def get_next_waypoint_idx():
-	x_coordinate 		= self.ego_pose.pose.position.x
-	y_coordinate 		= self.ego_pose.pose.position.y
-	closest_index 		= self.waypoint.KDTree.query([x,y],1)[1]
-	closest_waypoint_in_2d 	= self.waypoints_2d[closest_index]
-	previous_waypoint_in_2d = self.waypoints_2d[closest_index-1]
-	# define vectors using 2d coordinates
-	ego_vector 		= np.array([x_coordinate, y_coordinate])
-	closest_waypoint_vector = np.array(closest_waypoint_in_2d)
-	previous_waypoint_vector= np.array(previous_waypoint_in_2d)
-	# define intersection with hyperplane
-	hyperplane = np.dot(closest_waypoint_vector - previous_waypoint_vector, ego_vector - closest_waypoint_vector)	
-	# check if found waypoint is behind the vehicle
-	if hyperplane > 0:
-		# use next waypoint
-		closest_index = (closest_index + 1) % len(self.waypoints_2d)
-	return closest_index
+        x_coordinate 		= self.ego_pose.pose.position.x
+        y_coordinate 		= self.ego_pose.pose.position.y
+        closest_index 		= self.waypoint.KDTree.query([x,y],1)[1]
+        closest_waypoint_in_2d 	= self.waypoints_2d[closest_index]
+        previous_waypoint_in_2d = self.waypoints_2d[closest_index-1]
+        # define vectors using 2d coordinates
+        ego_vector 		= np.array([x_coordinate, y_coordinate])
+        closest_waypoint_vector = np.array(closest_waypoint_in_2d)
+        previous_waypoint_vector= np.array(previous_waypoint_in_2d)
+        # define intersection with hyperplane
+        hyperplane = np.dot(closest_waypoint_vector - previous_waypoint_vector, ego_vector - closest_waypoint_vector)
+        # check if found waypoint is behind the vehicle
+        if hyperplane > 0:
+            # use next waypoint
+            closest_index = (closest_index + 1) % len(self.waypoints_2d)
+        return closest_index
 
 
     def pose_cb(self, msg):
-	self.ego_pose = msg
+        self.ego_pose = msg
 
     def publish_nxt_waypoints(self, nxt_idx):
-	waypoints_on_lane = Lane()
-	# get all waypoints starting from closest until closest + 200
-	waypoints_on_lane = self.base_waypoints.waypoints[nxt_idx:nxt_idx + LOOKAHEAD_WPS]
-	self.final_waypoints_pub.publish(waypoints_on_lane)
+        waypoints_on_lane = Lane()
+        # get all waypoints starting from closest until closest + 200
+        waypoints_on_lane = self.base_waypoints.waypoints[nxt_idx:nxt_idx + LOOKAHEAD_WPS]
+        self.final_waypoints_pub.publish(waypoints_on_lane)
 
     def waypoints_cb(self, waypoints):
-	# copy of lane waypoints
-	self.base_waypoints = waypoints
-	if self.waypoints_2d == None:
-		self.waypoints_2d = [[waypoints.pose.pose.position.x, waypoints.pose.pose.position.y] for waypoint in waypoints.waypoints]
-		self.waypoints_KDTree = KDTree(self.waypoints_2d)
+        # copy of lane waypoints
+        self.base_waypoints = waypoints
+        if self.waypoints_2d == None:
+            self.waypoints_2d = [[waypoints.pose.pose.position.x, waypoints.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoints_KDTree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
