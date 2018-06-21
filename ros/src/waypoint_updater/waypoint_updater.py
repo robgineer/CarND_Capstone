@@ -70,7 +70,7 @@ class WaypointUpdater(object):
     def get_next_waypoint_idx(self):
         x_coordinate 		= self.ego_pose.pose.position.x
         y_coordinate 		= self.ego_pose.pose.position.y
-        closest_index 		= self.waypoint.KDTree.query([x,y],1)[1]
+        closest_index 		= self.waypoint_KDTree.query([x,y],1)[1]
         closest_waypoint_in_2d 	= self.waypoints_2d[closest_index]
         previous_waypoint_in_2d = self.waypoints_2d[closest_index-1]
         # define vectors using 2d coordinates
