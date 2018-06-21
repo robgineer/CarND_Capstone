@@ -63,8 +63,6 @@ class WaypointUpdater(object):
             # (avoid potential access to undefined variables)
             if self.ego_pose != None and self.base_waypoints != None:
                 # publish closest waypoint
-                rospy.loginfo(type(self.base_waypoints))
-                rospy.loginfo(type(self.waypoint_KDTree))
                 next_wpt_idx = self.get_next_waypoint_idx()
                 self.publish_nxt_waypoints(next_wpt_idx)
         # got to sleep for 20ms
@@ -101,7 +99,7 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         # copy of lane waypoints
         self.base_waypoints = waypoints
-        if self.waypoints_2d == None:
+        if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
             self.waypoint_KDTree = KDTree(self.waypoints_2d)
 
