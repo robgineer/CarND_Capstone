@@ -100,7 +100,7 @@ class WaypointUpdater(object):
         self.base_waypoints = waypoints
         if self.waypoints_2d == None:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
-            self.waypoints_KDTree = KDTree(self.waypoints_2d)
+            self.waypoint_KDTree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
