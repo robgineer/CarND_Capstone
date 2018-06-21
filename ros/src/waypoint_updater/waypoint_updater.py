@@ -88,6 +88,7 @@ class WaypointUpdater(object):
 
 
     def pose_cb(self, msg):
+        rospy.loginfo(msg)
         self.ego_pose = msg
 
     def publish_nxt_waypoints(self, nxt_idx):
