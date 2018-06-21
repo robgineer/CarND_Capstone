@@ -65,8 +65,8 @@ class WaypointUpdater(object):
                 # publish closest waypoint
                 next_wpt_idx = self.get_next_waypoint_idx()
                 self.publish_nxt_waypoints(next_wpt_idx)
-        # got to sleep for 20ms
-        execution_freq.sleep()
+            # got to sleep for 20ms
+            execution_freq.sleep()
 
     def get_next_waypoint_idx(self):
         x_coordinate 		= self.ego_pose.pose.position.x
