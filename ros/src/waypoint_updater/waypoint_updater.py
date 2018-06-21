@@ -61,7 +61,7 @@ class WaypointUpdater(object):
         while not rospy.is_shutdown():
             # asynchronous thread execution: check if variables have been initialized
             # (avoid potential access to undefined variables)
-            if self.ego_pose != None and self.base_waypoints != None:
+            if self.ego_pose and self.base_waypoints:
                 # publish closest waypoint
                 next_wpt_idx = self.get_next_waypoint_idx()
                 self.publish_nxt_waypoints(next_wpt_idx)
