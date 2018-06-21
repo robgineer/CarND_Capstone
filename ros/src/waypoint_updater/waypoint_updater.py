@@ -67,7 +67,7 @@ class WaypointUpdater(object):
         # got to sleep for 20ms
         execution_freq.sleep()
 
-    def get_next_waypoint_idx():
+    def get_next_waypoint_idx(self):
         x_coordinate 		= self.ego_pose.pose.position.x
         y_coordinate 		= self.ego_pose.pose.position.y
         closest_index 		= self.waypoint.KDTree.query([x,y],1)[1]
