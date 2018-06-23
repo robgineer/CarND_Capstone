@@ -43,7 +43,7 @@ class WaypointUpdater(object):
         self.ego_pose = None
         self.base_waypoints = None
         self.waypoints_2d = None
-        self.waypoint_KDTree = None
+        self.waypoint_tree = None
 
         # don't need spin(). Replaced by loop().
         # rospy.spin()
@@ -61,17 +61,18 @@ class WaypointUpdater(object):
         while not rospy.is_shutdown():
             # asynchronous thread execution: check if variables have been initialized
             # (avoid potential access to undefined variables)
-            if self.ego_pose and self.base_waypoints:
+            if self.ego_pose is None or self.base_waypoints is None or self.waypoint_tree is None:
+                continue
                 # publish closest waypoint
-                next_wpt_idx = self.get_next_waypoint_idx()
-                self.publish_nxt_waypoints(next_wpt_idx)
+            next_wpt_idx = self.get_next_waypoint_idx()
+            self.publish_nxt_waypoints(next_wpt_idx)
             # got to sleep for 20ms
             execution_freq.sleep()
 
     def get_next_waypoint_idx(self):
         x_coordinate = self.ego_pose.pose.position.x
         y_coordinate = self.ego_pose.pose.position.y
-        closest_index = self.waypoint_KDTree.query([x_coordinate, y_coordinate], 1)[1]
+        closest_index = self.waypoint_tree.query([x_coordinate, y_coordinate], 1)[1]
         closest_waypoint_in_2d = self.waypoints_2d[closest_index]
         previous_waypoint_in_2d = self.waypoints_2d[closest_index - 1]
         # define vectors using 2d coordinates
@@ -87,7 +88,6 @@ class WaypointUpdater(object):
         return closest_index
 
     def pose_cb(self, msg):
-        rospy.loginfo(msg)
         self.ego_pose = msg
 
     def publish_nxt_waypoints(self, nxt_idx):
@@ -102,7 +102,7 @@ class WaypointUpdater(object):
         if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in
                                  waypoints.waypoints]
-            self.waypoint_KDTree = KDTree(self.waypoints_2d)
+            self.waypoint_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
