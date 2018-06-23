@@ -20,10 +20,10 @@ Please note that our simulator also provides the exact location of traffic light
 current status in `/vehicle/traffic_lights` message. You can use this message to build this node
 as well as to verify your TL classifier.
 
-TODO (for Yousuf and Aaron): Stopline location for each traffic light.
+
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -31,7 +31,7 @@ class WaypointUpdater(object):
         # initialise this node
         rospy.init_node('waypoint_updater')
 
-	    # define the subscribers and the corresponding callback function
+        # define the subscribers and the corresponding callback function
         # /current_pose represents the EGO position
         # /base_waypoints represent
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -45,17 +45,17 @@ class WaypointUpdater(object):
         self.waypoints_2d = None
         self.waypoint_KDTree = None
 
-	    # dont need spin(). Replaced by loop().
-        #rospy.spin()
-	
+        # don't need spin(). Replaced by loop().
+        # rospy.spin()
+
         # infinite loop that suspends itself every 20ms
         self.loop()
-	
+
     def loop(self):
         # publish closest waypoint every 20ms and pause execution
 
         # define the cycle time of this module
-        execution_freq = rospy.Rate(50) # value taken over from tutorial
+        execution_freq = rospy.Rate(50)  # value taken over from tutorial
 
         # check if roscore is active
         while not rospy.is_shutdown():
@@ -69,15 +69,15 @@ class WaypointUpdater(object):
             execution_freq.sleep()
 
     def get_next_waypoint_idx(self):
-        x_coordinate 		= self.ego_pose.pose.position.x
-        y_coordinate 		= self.ego_pose.pose.position.y
-        closest_index 		= self.waypoint_KDTree.query([x_coordinate,y_coordinate],1)[1]
-        closest_waypoint_in_2d 	= self.waypoints_2d[closest_index]
-        previous_waypoint_in_2d = self.waypoints_2d[closest_index-1]
+        x_coordinate = self.ego_pose.pose.position.x
+        y_coordinate = self.ego_pose.pose.position.y
+        closest_index = self.waypoint_KDTree.query([x_coordinate, y_coordinate], 1)[1]
+        closest_waypoint_in_2d = self.waypoints_2d[closest_index]
+        previous_waypoint_in_2d = self.waypoints_2d[closest_index - 1]
         # define vectors using 2d coordinates
-        ego_vector 		= np.array([x_coordinate, y_coordinate])
+        ego_vector = np.array([x_coordinate, y_coordinate])
         closest_waypoint_vector = np.array(closest_waypoint_in_2d)
-        previous_waypoint_vector= np.array(previous_waypoint_in_2d)
+        previous_waypoint_vector = np.array(previous_waypoint_in_2d)
         # define intersection with hyperplane
         hyperplane = np.dot(closest_waypoint_vector - previous_waypoint_vector, ego_vector - closest_waypoint_vector)
         # check if found waypoint is behind the vehicle
@@ -85,7 +85,6 @@ class WaypointUpdater(object):
             # use next waypoint
             closest_index = (closest_index + 1) % len(self.waypoints_2d)
         return closest_index
-
 
     def pose_cb(self, msg):
         rospy.loginfo(msg)
@@ -101,7 +100,8 @@ class WaypointUpdater(object):
         # copy of lane waypoints
         self.base_waypoints = waypoints
         if not self.waypoints_2d:
-            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in
+                                 waypoints.waypoints]
             self.waypoint_KDTree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
@@ -120,8 +120,8 @@ class WaypointUpdater(object):
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
+        dl = lambda a, b: math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2)
+        for i in range(wp1, wp2 + 1):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
