@@ -80,9 +80,9 @@ class WaypointUpdater(object):
         closest_waypoint_vector = np.array(closest_waypoint_in_2d)
         previous_waypoint_vector = np.array(previous_waypoint_in_2d)
         # define intersection with hyperplane
-        hyperplane = np.dot(closest_waypoint_vector - previous_waypoint_vector, ego_vector - closest_waypoint_vector)
+        intersection = np.dot(closest_waypoint_vector - previous_waypoint_vector, ego_vector - closest_waypoint_vector)
         # check if found waypoint is behind the vehicle
-        if hyperplane > 0:
+        if intersection > 0:
             # use next waypoint
             closest_index = (closest_index + 1) % len(self.waypoints_2d)
         return closest_index
