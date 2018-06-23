@@ -92,8 +92,11 @@ class WaypointUpdater(object):
 
     def publish_nxt_waypoints(self, nxt_idx):
         waypoints_on_lane = Lane()
+        # copy header
+        waypoints_on_lane.header = self.base_waypoints.header
         # get all waypoints starting from closest until closest + 200
-        waypoints_on_lane = self.base_waypoints.waypoints[nxt_idx:nxt_idx + LOOKAHEAD_WPS]
+        waypoints_on_lane.waypoints = self.base_waypoints.waypoints[nxt_idx:nxt_idx + LOOKAHEAD_WPS]
+        # store into final variable
         self.final_waypoints_pub.publish(waypoints_on_lane)
 
     def waypoints_cb(self, waypoints):
