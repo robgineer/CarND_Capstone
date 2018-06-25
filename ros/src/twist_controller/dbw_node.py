@@ -31,12 +31,10 @@ that we have created in the `__init__` function.
 
 '''
 
-
 class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
 
-        # vehicle specific parameters
         vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
         fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
         brake_deadband = rospy.get_param('~brake_deadband', .1)
@@ -55,7 +53,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        # `Controller` object
+        # TODO: Create `Controller` object
         self.controller = Controller(vehicle_mass=vehicle_mass,
                                      fuel_capacity=fuel_capacity,
                                      brake_deadband=brake_deadband,
@@ -67,39 +65,45 @@ class DBWNode(object):
                                      max_lat_accel=max_lat_accel,
                                      max_steer_angle=max_steer_angle)
 
-        # subscribe velocity, control commands (as throttle and steering) and manual vehicle control
-        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
-        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
 
-        # define local variables
-        self.curr_velocity = None
-        #self.curr_angular_velocity = None
+        self.current_vel = None
+        self.curr_ang_vel = None
         self.dbw_enabled = None
-        self.linear_velocity = None
-        self.angular_velocity = None
-        self.throttle = 0
-        self.steering = 0
-        self.brake = 0
+        self.linear_vel = None
+        self.angular_vel = None
+        self.throttle = self.steering = self.brake = 0
 
-        # start infinite loop
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50)
-        # 50Hz - necessary!
-        # If no control commands are received,
-        # the vehicle is handing over control to the driver
+        rate = rospy.Rate(50) # 50Hz
         while not rospy.is_shutdown():
-            # det predicted throttle, brake, and steering using `twist_controller`
-            if not None in (self.curr_velocity, self.linear_velocity, self.angular_velocity):
-                self.throttle, self.brake, self.steering = self.controller.control(self.curr_velocity,
-                                                                                   self.dbw_enabled,
-                                                                                   self.linear_velocity,
-                                                                                   self.angular_velocity)
+            # TODO: Get predicted throttle, brake, and steering using `twist_controller`
+            # You should only publish the control commands if dbw is enabled
+            if not None in (self.current_vel, self.linear_vel, self.angular_vel):
+
+                self.throttle, self.brake, self.steering = \
+				self.controller.control(self.linear_vel,
+                                                        self.angular_vel,
+                                                        self.current_vel,
+                                                        self.dbw_enabled)
             if self.dbw_enabled:
                 self.publish(self.throttle, self.brake, self.steering)
             rate.sleep()
+
+    def dbw_enabled_cb(self, msg):
+        self.dbw_enabled = msg
+
+    def twist_cb(self, msg):
+        self.linear_vel = msg.twist.linear.x
+        self.angular_vel = msg.twist.angular.z
+
+    def velocity_cb(self, msg):
+        self.current_vel = msg.twist.linear.x
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
@@ -118,16 +122,6 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
-
-    def twist_cb(self, msg):
-        self.linear_velocity = msg.twist.linear.x
-        self.angular_velocity = msg.twist.angular.z
-
-    def velocity_cb(self, msg):
-        self.curr_velocity = msg.twist.linear.x
-
-    def dbw_enabled_cb(self, msg):
-        self.dbw_enabled = msg
 
 
 if __name__ == '__main__':
